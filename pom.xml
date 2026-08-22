@@ -10,7 +10,7 @@
     </parent>
     <groupId>dinotaurent</groupId>
     <artifactId>jbreak-shell</artifactId>
-    <version>0.0.1-SNAPSHOT</version>
+    <version>0.0.1</version>
     <name>jbreak-shell</name>
     <description>jbreak-shell</description>
     <url/>
@@ -29,6 +29,7 @@
     <properties>
         <java.version>25</java.version>
         <spring-shell.version>4.0.2</spring-shell.version>
+        <native-maven-plugin.version>0.11.3</native-maven-plugin.version>
     </properties>
     <dependencies>
         <dependency>
