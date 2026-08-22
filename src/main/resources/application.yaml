@@ -5,11 +5,11 @@ spring:
     # Quita los logs de arranque de spring
     log-startup-info: false
   application:
-    name: jbreak-cli
+    name: jbreak-shell
   shell:
     interactive:
       enable: true
 
 application:
-  title: JBreak-CLI
+  title: JBreak-shell
   version: 0.0.1
