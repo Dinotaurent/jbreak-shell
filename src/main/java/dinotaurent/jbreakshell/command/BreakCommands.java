@@ -33,11 +33,13 @@ public class BreakCommands {
             +-----------------------------------------+
             |               ESTADO DE PAUSAS          |
             +-----------------------------------------+
+            | Tiempo en PC:        %s                  |
             | Progreso del ciclo:  %d de 3 descansos   |
             | Tomados en sesión:   %d                  |
             | Saltados en sesión:  %d                  |
             +-----------------------------------------+
             """,
+                status.tiempoEnPcFormat(),
                 status.contadorDescansos(),
                 status.descansosCompletados(),
                 status.descansosSaltados()
