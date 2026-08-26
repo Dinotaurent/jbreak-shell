@@ -1,14 +1,11 @@
 spring:
   main:
-    # Quita el banner de Spring Boot, "console" tambien es buena opcion.
+    # Quita el banner de Spring Boot en "off", "console" tambien es buena opcion.
     banner-mode: "console"
     # Quita los logs de arranque de spring
     log-startup-info: false
   application:
     name: jbreak-shell
-  shell:
-    interactive:
-      enable: true
 
 application:
   title: JBreak-shell
