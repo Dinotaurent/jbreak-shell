@@ -11,11 +11,13 @@ import org.springframework.stereotype.Service;
 import javax.sound.sampled.AudioInputStream;
 import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
+import javax.sound.sampled.LineEvent;
 import java.io.BufferedInputStream;
 import java.io.BufferedReader;
 import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.Optional;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -117,22 +119,28 @@ public class BreakService {
     }
 
     private void play(int opcion){
-        BufferedInputStream reader;
-        try {
-            if (opcion == 1){
-                reader = new BufferedInputStream(sonido1.getInputStream());
-            } else {
-                reader = new BufferedInputStream(sonido2.getInputStream());
-            }
+        Resource recurso = opcion == 1 ? sonido1 : sonido2;
 
-            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(reader);
-
+        try (
+                BufferedInputStream buffer = new BufferedInputStream(recurso.getInputStream());
+                AudioInputStream audio = AudioSystem.getAudioInputStream(buffer)
+        ) {
             Clip clip = AudioSystem.getClip();
-            clip.open(audioInputStream);
-            clip.start();
+            clip.open(audio);
 
-        } catch (Exception e){
-            IO.println("Se produjo un error: " + e.getMessage());
+            CountDownLatch latch = new CountDownLatch(1);
+            clip.addLineListener(event -> {
+                if (event.getType() == LineEvent.Type.STOP) {
+                    latch.countDown();
+                }
+            });
+
+            clip.start();
+            latch.await();
+            clip.close();
+
+        } catch (Exception e) {
+            IO.println("[sound] Error reproduciendo audio: " + e.getMessage());
         }
     }
 }
