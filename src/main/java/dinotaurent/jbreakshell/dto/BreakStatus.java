@@ -1,7 +1,6 @@
 package dinotaurent.jbreakshell.dto;
 
 import java.time.Duration;
-import java.time.format.DateTimeFormatter;
 
 public record BreakStatus(
         Duration tiempoEnPc,

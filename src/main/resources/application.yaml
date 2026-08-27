@@ -6,9 +6,6 @@ spring:
     log-startup-info: false
   application:
     name: jbreak-shell
-  shell:
-    config:
-      location: classpath:stty
 
 application:
   title: JBreak-shell
