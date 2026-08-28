@@ -76,6 +76,7 @@ public class BreakService {
 
             contar(2);
             play(1);
+            notify("JBreak-shell","Momento un descanso!");
 
             // --- En construccion ---
             tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
@@ -122,9 +123,11 @@ public class BreakService {
         Resource recurso = opcion == 1 ? sonido1 : sonido2;
 
         try (
+                // Se inicia el buffer para el recurso y se extrae el audio.
                 BufferedInputStream buffer = new BufferedInputStream(recurso.getInputStream());
                 AudioInputStream audio = AudioSystem.getAudioInputStream(buffer)
         ) {
+            // Se crea un Clip y se le asigna el audio extraido del buffer
             Clip clip = AudioSystem.getClip();
             clip.open(audio);
 
@@ -141,6 +144,34 @@ public class BreakService {
 
         } catch (Exception e) {
             IO.println("[sound] Error reproduciendo audio: " + e.getMessage());
+        }
+    }
+
+    private void notify(String titulo, String mensaje) {
+        try {
+            String os = System.getProperty("os.name").toLowerCase();
+            ProcessBuilder pb;
+
+            if (os.contains("linux")) {
+                pb = new ProcessBuilder("notify-send", titulo, mensaje);
+            } else if (os.contains("windows")) {
+                String toast = """
+                [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
+                $template = [Windows.UI.Notifications.ToastNotificationManager]::GetTemplateContent([Windows.UI.Notifications.ToastTemplateType]::ToastText02)
+                $template.SelectSingleNode('//text[@id=1]').InnerText = '%s'
+                $template.SelectSingleNode('//text[@id=2]').InnerText = '%s'
+                $toast = [Windows.UI.Notifications.ToastNotification]::new($template)
+                [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('JBreak').Show($toast)
+                """.formatted(titulo, mensaje);
+                pb = new ProcessBuilder("powershell", "-NoProfile", "-Command", toast);
+            } else {
+                return;
+            }
+
+            pb.start();
+
+        } catch (Exception e) {
+            IO.println("[notify] Error: " + e.getMessage());
         }
     }
 }
