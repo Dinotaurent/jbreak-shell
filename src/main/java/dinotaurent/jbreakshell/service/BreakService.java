@@ -13,8 +13,6 @@ import javax.sound.sampled.AudioSystem;
 import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineEvent;
 import java.io.BufferedInputStream;
-import java.io.BufferedReader;
-import java.io.InputStreamReader;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
@@ -28,6 +26,7 @@ public class BreakService {
     private int descansosCompletados = 0;
     private int descansosSaltados = 0;
     private int contadorDescansos = 0;
+    private final String[] spinner = {"⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"};
 
     @Value("classpath:alert.wav")
     private Resource sonido1;
@@ -74,9 +73,10 @@ public class BreakService {
             IO.println("[▶] Temporizador de pausa activa!");
             IO.println("[i] Presiona CTRL + C en cualquier momento para cancelar.");
 
-            contar(2);
-            play(1);
-            notify("JBreak-shell","Momento un descanso!");
+//            count(2);
+//            play(1);
+//            notify("Momento de una pausa activa!!!");
+            startBreak();
 
             // --- En construccion ---
             tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
@@ -115,7 +115,7 @@ public class BreakService {
         );
     }
 
-    private void contar(int minutos) throws InterruptedException{
+    private void count(int minutos) throws InterruptedException{
         TimeUnit.MINUTES.sleep(minutos);
     }
 
@@ -147,13 +147,13 @@ public class BreakService {
         }
     }
 
-    private void notify(String titulo, String mensaje) {
+    private void notify(String mensaje) {
         try {
             String os = System.getProperty("os.name").toLowerCase();
             ProcessBuilder pb;
 
             if (os.contains("linux")) {
-                pb = new ProcessBuilder("notify-send", titulo, mensaje);
+                pb = new ProcessBuilder("notify-send", "JBreak-shell", mensaje);
             } else if (os.contains("windows")) {
                 String toast = """
                 [Windows.UI.Notifications.ToastNotificationManager, Windows.UI.Notifications, ContentType=WindowsRuntime] | Out-Null
@@ -162,7 +162,7 @@ public class BreakService {
                 $template.SelectSingleNode('//text[@id=2]').InnerText = '%s'
                 $toast = [Windows.UI.Notifications.ToastNotification]::new($template)
                 [Windows.UI.Notifications.ToastNotificationManager]::CreateToastNotifier('JBreak').Show($toast)
-                """.formatted(titulo, mensaje);
+                """.formatted("JBreak-shell", mensaje);
                 pb = new ProcessBuilder("powershell", "-NoProfile", "-Command", toast);
             } else {
                 return;
@@ -173,5 +173,18 @@ public class BreakService {
         } catch (Exception e) {
             IO.println("[notify] Error: " + e.getMessage());
         }
+    }
+
+    public void startBreak() throws InterruptedException {
+        long segundos = TimeUnit.MINUTES.toSeconds(3);
+
+        for (int i = 0; i < segundos ; i++) {
+            String frame = spinner[i % spinner.length];
+            terminal.writer().print(String.format("\r[%s] En pausa activa... ", frame));
+            terminal.writer().flush();
+            Thread.sleep(1000);
+        }
+        IO.println("pausa activa terminada.");
+
     }
 }
