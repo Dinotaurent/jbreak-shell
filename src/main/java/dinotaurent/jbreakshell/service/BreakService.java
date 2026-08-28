@@ -1,10 +1,12 @@
 package dinotaurent.jbreakshell.service;
 
 import dinotaurent.jbreakshell.dto.BreakStatus;
+import org.jline.reader.LineReader;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.Terminal.SignalHandler;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Service;
 
@@ -22,6 +24,7 @@ import java.util.concurrent.TimeUnit;
 public class BreakService {
 
     private final Terminal terminal;
+    private final LineReader lineReader;
     private Duration tiempoEnPc = Duration.ZERO;
     private int descansosCompletados = 0;
     private int descansosSaltados = 0;
@@ -37,8 +40,9 @@ public class BreakService {
     // Hilo actual, guardarlo es necesario para poderlo interrumpirlo.
     private volatile Thread timerThread = null;
 
-    public BreakService(Terminal terminal) {
+    public BreakService(Terminal terminal,@Lazy LineReader lineReader) {
         this.terminal = terminal;
+        this.lineReader = lineReader;
     }
 
     public Optional<BreakStatus> start(){
@@ -76,7 +80,12 @@ public class BreakService {
 //            count(2);
 //            play(1);
 //            notify("Momento de una pausa activa!!!");
-            startBreak();
+            boolean descanso = askBreak();
+
+            if (descanso) {
+                startBreak();
+            }
+
 
             // --- En construccion ---
             tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
@@ -185,6 +194,19 @@ public class BreakService {
             Thread.sleep(1000);
         }
         IO.println("pausa activa terminada.");
+    }
 
+    private boolean askBreak() {
+        while (true) {
+            // readLine muestra el prompt y espera input del usuario
+            String input = lineReader.readLine("[?] ¿Realizar descanso? (y/n): ")
+                    .trim()
+                    .toLowerCase();
+
+            if (input.equals("y")) return true;
+            if (input.equals("n")) return false;
+
+            IO.println("[!] Opción inválida — ingresa 'y' o 'n'");
+        }
     }
 }
