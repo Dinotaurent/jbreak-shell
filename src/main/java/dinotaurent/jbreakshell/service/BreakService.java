@@ -45,13 +45,52 @@ public class BreakService {
         this.lineReader = lineReader;
     }
 
-    public Optional<BreakStatus> start(){
+    public Optional<BreakStatus> start()  {
         IO.println("Se ejecuta metodo start()");
+
+        try {
+            count(1);
+        } catch (InterruptedException e){
+            IO.println("\n[✖] Temporizador cancelado.");
+
+            return Optional.empty();
+        }
+
+        // --- En construccion ---
+        play(1);
+        notify("Momento de una pausa activa!!!");
+        boolean descanso = askBreak();
+
+        if (descanso) {
+            startBreak();
+        }
+
+
+        tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
+        descansosCompletados++;
+        descansosSaltados++;
+        contadorDescansos++;
+
+
+        // ---
+        return Optional.of(getInfo());
+
+    }
+
+    public BreakStatus getInfo(){
+        return new BreakStatus(
+                this.tiempoEnPc,
+                this.descansosCompletados,
+                this.descansosSaltados,
+                this.contadorDescansos
+        );
+    }
+
+    private void count(int minutos) throws InterruptedException{
 
         // Guardar handler anterior y crear uno nuevo temporal para CTRL + C
         SignalHandler prevHandler =
                 terminal.handle(Terminal.Signal.INT, signal -> {
-                    IO.println("\n[DEBUG] Se recibió CTRL + C");
                     Thread hilo = timerThread;
 
                     if (hilo != null) {
@@ -77,28 +116,8 @@ public class BreakService {
             IO.println("[▶] Temporizador de pausa activa!");
             IO.println("[i] Presiona CTRL + C en cualquier momento para cancelar.");
 
-//            count(2);
-//            play(1);
-//            notify("Momento de una pausa activa!!!");
-            boolean descanso = askBreak();
+            TimeUnit.MINUTES.sleep(minutos);
 
-            if (descanso) {
-                startBreak();
-            }
-
-
-            // --- En construccion ---
-            tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
-            descansosCompletados++;
-            descansosSaltados++;
-            contadorDescansos++;
-
-            return Optional.of(getInfo());
-            // ---
-        } catch (InterruptedException e){
-            IO.println("\n[✖] Temporizador cancelado.");
-            play(2);
-            return Optional.empty();
         } finally {
             // Se limpia la referencia del hilo al terminar correctamente o interrumpirse.
             timerThread = null;
@@ -113,19 +132,6 @@ public class BreakService {
         }
 
 
-    }
-
-    public BreakStatus getInfo(){
-        return new BreakStatus(
-                this.tiempoEnPc,
-                this.descansosCompletados,
-                this.descansosSaltados,
-                this.contadorDescansos
-        );
-    }
-
-    private void count(int minutos) throws InterruptedException{
-        TimeUnit.MINUTES.sleep(minutos);
     }
 
     private void play(int opcion){
@@ -184,21 +190,24 @@ public class BreakService {
         }
     }
 
-    public void startBreak() throws InterruptedException {
-        long segundos = TimeUnit.MINUTES.toSeconds(3);
+    public void startBreak() {
+        long segundos = TimeUnit.MINUTES.toSeconds(1);
 
         for (int i = 0; i < segundos ; i++) {
             String frame = spinner[i % spinner.length];
             terminal.writer().print(String.format("\r[%s] En pausa activa... ", frame));
             terminal.writer().flush();
-            Thread.sleep(1000);
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                throw new RuntimeException(e);
+            }
         }
         IO.println("pausa activa terminada.");
     }
 
     private boolean askBreak() {
         while (true) {
-            // readLine muestra el prompt y espera input del usuario
             String input = lineReader.readLine("[?] ¿Realizar descanso? (y/n): ")
                     .trim()
                     .toLowerCase();
