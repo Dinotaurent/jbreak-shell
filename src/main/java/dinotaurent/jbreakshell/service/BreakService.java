@@ -5,6 +5,7 @@ import org.jline.reader.LineReader;
 import org.jline.terminal.Attributes;
 import org.jline.terminal.Terminal;
 import org.jline.terminal.Terminal.SignalHandler;
+import org.jline.utils.InfoCmp;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.core.io.Resource;
@@ -46,7 +47,6 @@ public class BreakService {
     }
 
     public Optional<BreakStatus> start()  {
-        IO.println("Se ejecuta metodo start()");
 
         try {
             count(1);
@@ -57,31 +57,35 @@ public class BreakService {
             return Optional.empty();
         }
 
-        // --- En construccion ---
         play(1);
         notify("Momento de una pausa activa!!!");
-        boolean descanso = askBreak();
 
-        if (descanso || descansosSaltados == 3) {
-            if (descansosSaltados ==  3){
-                IO.println("Ni modo, a descansar si o si");
-                descansosSaltados = 0;
-            }
+        boolean fuerzaDescanso = (descansosSaltados == 2);
+
+        boolean descanso = false;
+        if (fuerzaDescanso) {
+            IO.println("Ni modo, a descansar sí o sí (alcanzaste el límite de descansos saltados)");
+            descanso = true;
+        } else {
+            descanso = askBreak();
+        }
+
+        if (descanso) {
             startBreak();
-
+            descansosCompletados++;
+            descansosSaltados = 0;
         } else {
             descansosSaltados++;
-            contadorDescansos++;
-            start();
         }
-        descansosCompletados++;
+
         contadorDescansos++;
 
+        if (contadorDescansos == 3) {
+            clearScreen();
+            contadorDescansos = 0;
+        }
 
-
-        // ---
         return Optional.of(getInfo());
-
     }
 
     public BreakStatus getInfo(){
@@ -210,6 +214,7 @@ public class BreakService {
                 throw new RuntimeException(e);
             }
         }
+        play(2);
         IO.println("pausa activa terminada.");
     }
 
@@ -224,5 +229,11 @@ public class BreakService {
 
             IO.println("[!] Opción inválida — ingresa 'y' o 'n'");
         }
+    }
+
+    private void clearScreen() {
+        terminal.puts(InfoCmp.Capability.clear_screen);
+        terminal.writer().flush();
+        IO.println("Limpiando consola \uD83E\uDDF9 \uD83E\uDDF9");
     }
 }

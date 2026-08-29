@@ -17,9 +17,17 @@ public class BreakCommands {
     }
 
     @Command(name = "start", description = "Inicia la sesión")
-    public String start(){
-        Optional<BreakStatus> resultado = service.start();
-        return resultado.map(this::formatStatusOutput).orElse("");
+    public void start(){
+
+        while(true){
+            Optional<BreakStatus> result = service.start();
+
+            if (result.isEmpty()){
+                IO.println("\n[!] Sesión de pausas activas finalizada.");
+                break;
+            }
+            IO.println(info());
+        }
     }
 
     @Command(name = "info", description = "Muestra la informacion de la sesión")
