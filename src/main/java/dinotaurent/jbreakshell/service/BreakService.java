@@ -50,6 +50,7 @@ public class BreakService {
 
         try {
             count(1);
+            tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
         } catch (InterruptedException e){
             IO.println("\n[✖] Temporizador cancelado.");
 
@@ -61,15 +62,21 @@ public class BreakService {
         notify("Momento de una pausa activa!!!");
         boolean descanso = askBreak();
 
-        if (descanso) {
+        if (descanso || descansosSaltados == 3) {
+            if (descansosSaltados ==  3){
+                IO.println("Ni modo, a descansar si o si");
+                descansosSaltados = 0;
+            }
             startBreak();
+
+        } else {
+            descansosSaltados++;
+            contadorDescansos++;
+            start();
         }
-
-
-        tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
         descansosCompletados++;
-        descansosSaltados++;
         contadorDescansos++;
+
 
 
         // ---
