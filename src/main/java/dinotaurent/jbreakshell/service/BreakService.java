@@ -57,7 +57,7 @@ public class BreakService {
     public Optional<BreakStatus> start()  {
 
         try {
-            count(1);
+            count(30); // Tiempo de sesion.
             tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
         } catch (InterruptedException e){
             IO.println(timestamp() + " ❌  Temporizador cancelado.");
@@ -210,7 +210,7 @@ public class BreakService {
     }
 
     public void startBreak() {
-        long segundos = TimeUnit.MINUTES.toSeconds(1);
+        long segundos = TimeUnit.MINUTES.toSeconds(3); // Tiempo de descanso
         IO.println(timestamp() + " \uD83E\uDDD8 Descanso iniciado");
         for (int i = 0; i < segundos ; i++) {
             String frame = spinner[i % spinner.length];
