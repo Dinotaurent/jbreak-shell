@@ -17,6 +17,8 @@ import javax.sound.sampled.Clip;
 import javax.sound.sampled.LineEvent;
 import java.io.BufferedInputStream;
 import java.time.Duration;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
@@ -46,25 +48,31 @@ public class BreakService {
         this.lineReader = lineReader;
     }
 
+    private static final DateTimeFormatter TIME_FMT = DateTimeFormatter.ofPattern("HH:mm");
+
+    private String timestamp() {
+        return "[" + LocalTime.now().format(TIME_FMT) + "]";
+    }
+
     public Optional<BreakStatus> start()  {
 
         try {
             count(1);
             tiempoEnPc = tiempoEnPc.plus(Duration.ofMinutes(30));
         } catch (InterruptedException e){
-            IO.println("\n[✖] Temporizador cancelado.");
+            IO.println(timestamp() + " ❌  Temporizador cancelado.");
 
             return Optional.empty();
         }
 
         play(1);
-        notify("Momento de una pausa activa!!!");
+        notify("\uD83D\uDD14  Momento de una pausa activa!!!");
 
         boolean fuerzaDescanso = (descansosSaltados == 2);
 
         boolean descanso = false;
         if (fuerzaDescanso) {
-            IO.println("Ni modo, a descansar sí o sí (alcanzaste el límite de descansos saltados)");
+            IO.println(timestamp() + " Ni modo, a descansar sí o sí (alcanzaste el límite de descansos saltados)");
             descanso = true;
         } else {
             descanso = askBreak();
@@ -124,8 +132,8 @@ public class BreakService {
         timerThread = Thread.currentThread();
 
         try {
-            IO.println("[▶] Temporizador de pausa activa!");
-            IO.println("[i] Presiona CTRL + C en cualquier momento para cancelar.");
+            IO.println(timestamp() + " ▶\uFE0F  Temporizador de pausa activa!");
+            IO.println(timestamp() + " ⚠\uFE0F  Presiona CTRL + C en cualquier momento para cancelar.");
 
             TimeUnit.MINUTES.sleep(minutos);
 
@@ -203,10 +211,10 @@ public class BreakService {
 
     public void startBreak() {
         long segundos = TimeUnit.MINUTES.toSeconds(1);
-
+        IO.println(timestamp() + " \uD83E\uDDD8 Descanso iniciado");
         for (int i = 0; i < segundos ; i++) {
             String frame = spinner[i % spinner.length];
-            terminal.writer().print(String.format("\r[%s] En pausa activa... ", frame));
+            terminal.writer().print(String.format( "\r[%s] En pausa activa... ", frame));
             terminal.writer().flush();
             try {
                 Thread.sleep(1000);
@@ -215,25 +223,25 @@ public class BreakService {
             }
         }
         play(2);
-        IO.println("pausa activa terminada.");
+        IO.println(" ✅ Fin del descanso. ¡Vuelve al trabajo! \uD83D\uDCAA");
     }
 
     private boolean askBreak() {
         while (true) {
-            String input = lineReader.readLine("[?] ¿Realizar descanso? (y/n): ")
+            String input = lineReader.readLine( timestamp() + "❓¿Realizar descanso? (y/n): ")
                     .trim()
                     .toLowerCase();
 
             if (input.equals("y")) return true;
             if (input.equals("n")) return false;
 
-            IO.println("[!] Opción inválida — ingresa 'y' o 'n'");
+            IO.println(timestamp() +  "⁉\uFE0F  Opción inválida — ingresa 'y' o 'n'");
         }
     }
 
     private void clearScreen() {
         terminal.puts(InfoCmp.Capability.clear_screen);
         terminal.writer().flush();
-        IO.println("Limpiando consola \uD83E\uDDF9 \uD83E\uDDF9");
+        IO.println(timestamp() + " \uD83E\uDDF9 Pantalla limpia.");
     }
 }

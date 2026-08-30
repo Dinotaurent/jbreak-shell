@@ -10,7 +10,7 @@
     </parent>
     <groupId>dinotaurent</groupId>
     <artifactId>jbreak-shell</artifactId>
-    <version>0.0.1</version>
+    <version>1.0.0</version>
     <name>jbreak-shell</name>
     <description>jbreak-shell</description>
     <url/>
